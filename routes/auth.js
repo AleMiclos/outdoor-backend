@@ -2,7 +2,6 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const Totem = require('../models/totem');
 
 const router = express.Router();
 
@@ -37,7 +36,6 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     console.log('Senha criptografada:', hashedPassword);
 
-    // Cria o usuário no banco de dados
     const newUser = new User({
       email,
       password: hashedPassword,
@@ -46,20 +44,6 @@ router.post('/register', async (req, res) => {
     await newUser.save();
     console.log('Usuário criado:', newUser);
 
-    // Cria um totem vinculado se o usuário for "cliente"
-    if (role === 'cliente') {
-      const newTotem = new Totem({
-        name: `Totem de ${email}`,
-        idCliente: newUser._id, // Vincula o ID do cliente ao totem
-      });
-      await newTotem.save();
-      console.log('Totem criado:', newTotem);
-
-      // Atualiza o usuário com o ID do totem
-      newUser.totemId = newTotem._id;
-      await newUser.save();
-    }
-
     res.status(201).json({ message: 'Usuário registrado com sucesso!' });
   } catch (err) {
     console.error('Erro interno no servidor:', err.message);
@@ -67,29 +51,25 @@ router.post('/register', async (req, res) => {
   }
 });
 
-
-// Login de usuário
+// Login de usuário (sem criação de Totem)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   console.log('Tentativa de login:', { email });
 
   try {
-    // Busca usuário pelo e-mail
     const user = await User.findOne({ email });
     if (!user) {
       console.error('Erro: Usuário não encontrado');
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
-    // Verifica a senha
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       console.error('Erro: Senha inválida');
       return res.status(401).json({ error: 'Senha inválida.' });
     }
 
-    // Gera o token JWT
     if (!process.env.JWT_SECRET) {
       console.error('Erro: JWT_SECRET não definido');
       return res.status(500).json({ error: 'Configuração do servidor incompleta.' });
@@ -99,7 +79,6 @@ router.post('/login', async (req, res) => {
       userId: user._id,
       email: user.email,
       role: user.role,
-      totemId: user.totemId,
     };
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -110,7 +89,6 @@ router.post('/login', async (req, res) => {
       message: 'Login bem-sucedido.',
       token,
       role: user.role,
-      totemId: user.totemId,
     });
   } catch (err) {
     console.error('Erro interno no servidor:', err.message);

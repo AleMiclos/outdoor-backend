@@ -10,7 +10,7 @@ const app = express();
 // Configure o CORS para permitir múltiplas origens
 const corsOptions = {
   origin: ["http://localhost:3000", "http://127.0.0.1:5500"],
-  methods: "GET,POST,DELETE",
+  methods: "GET,POST,DELETE, PUT",
   allowedHeaders: "Content-Type,Authorization",
 };
 
