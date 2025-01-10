@@ -9,7 +9,7 @@ const app = express();
 
 // Configure o CORS para permitir múltiplas origens
 const corsOptions = {
-  origin: ["http://localhost:3000", "http://127.0.0.1:5500"],
+  origin: ["http://localhost:3000", "https://outdoor-backend.onrender.com"],
   methods: "GET,POST,DELETE, PUT",
   allowedHeaders: "Content-Type,Authorization",
 };
@@ -31,9 +31,9 @@ app.use("/", totemRoutes);
 
 // Conexão ao banco
 mongoose
-  .connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log("Conectado ao MongoDB com sucesso!"))
-  .catch((err) => console.error("Erro ao conectar ao MongoDB:", err));
+  .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log("Conectado ao MongoDB"))
+  .catch((error) => console.error("Erro ao conectar ao MongoDB:", error));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
