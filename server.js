@@ -28,6 +28,7 @@ app.use("/totems", totemRoutes);
 app.use("/", totemRoutes);
 
 
+const MONGO_URI = process.env.MONGO_URI;
 
 // Conexão ao banco
 mongoose
