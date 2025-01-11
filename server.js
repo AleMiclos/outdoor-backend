@@ -20,12 +20,16 @@ app.use(express.json());
 // Importação das rotas
 const authRoutes = require("./routes/auth");
 const totemRoutes = require("./routes/totems");
+// const clienteRoutes = require("./routes/cliente");
+
 
 // Uso das rotas
 app.use("/auth", authRoutes);
 app.use("/totems", totemRoutes);
+// app.use("/cliente", clienteRoutes);
 
-app.use("/", totemRoutes);
+
+// app.use("/", totemRoutes);
 
 
 const MONGO_URI = process.env.MONGO_URI;

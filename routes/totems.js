@@ -5,6 +5,18 @@ const mongoose = require("mongoose");
 const authenticateToken = require("../middleware/authenticateToken");
 
 // Middleware para verificar o token
+router.get('/', authenticateToken, async (req, res) => {
+  try {
+    const allTotems = await Totem.find();
+    console.log(allTotems);
+
+    res.status(200).json(allTotems);
+  } catch (error) {
+    console.error('Erro ao buscar os totens:', error);
+    res.status(500).json({ error: 'Erro ao buscar os totens.' });
+  }
+});
+
 
 // Endpoint para listar os totens do usuário autenticado
 router.get('/totems', authenticateToken, async (req, res) => {
