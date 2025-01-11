@@ -19,7 +19,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
 
 // Endpoint para listar os totens do usuário autenticado
-router.get('/totems', authenticateToken, async (req, res) => {
+router.get('/totems/totems', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId; // Obtém o ID do usuário do token
     const userTotems = await Totem.find({ userId }); // Filtra pelos totens do usuário
