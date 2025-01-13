@@ -20,13 +20,13 @@ app.use(express.json());
 // Importação das rotas
 const authRoutes = require("./routes/auth");
 const totemRoutes = require("./routes/totems");
-// const clienteRoutes = require("./routes/cliente");
+const userRoutes = require('./routes/users');
 
 
 // Uso das rotas
 app.use("/auth", authRoutes);
 app.use("/totems", totemRoutes);
-// app.use("/cliente", clienteRoutes);
+app.use("/users", userRoutes);
 
 
 // app.use("/", totemRoutes);
