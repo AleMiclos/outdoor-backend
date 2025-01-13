@@ -1,16 +1,17 @@
 const express = require('express');
 const router = express.Router();
+const User = require('../models/User'); // Ajuste o caminho para o modelo do usuário
 
-// Exemplo de rota
-router.get('/users', async (req, res) => {
+// Rota para obter todos os usuários
+router.get('/', async (_req, res) => {
   try {
-    const users = await users.find(); // Certifique-se de que `User` é seu modelo
-    res.json(users); // Certifique-se de retornar um array
+    // Use o modelo User para buscar os usuários no banco de dados
+    const users = await User.find();
+    res.json(users); // Retorne os usuários como JSON
   } catch (error) {
     console.error('Erro ao obter usuários:', error);
     res.status(500).json({ message: 'Erro no servidor' });
   }
 });
-
 
 module.exports = router;
