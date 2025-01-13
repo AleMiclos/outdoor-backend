@@ -7,15 +7,11 @@ const router = express.Router();
 // Rota de registro
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role, totemId } = req.body;
+    const { name, email, password, role } = req.body;
 
     // Validações básicas
     if (!name || !email || !password || !role) {
       return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
-    }
-
-    if (role === 'cliente' ) {
-      return res.status(400).json({ error: 'Clientes devem ter um totemId.' });
     }
 
     // Verifica se o email já está registrado
@@ -33,7 +29,7 @@ router.post('/register', async (req, res) => {
       email,
       password: hashedPassword,
       role,
-      totemId: role === 'cliente' ? totemId : null, // Apenas clientes têm totemId
+      totemId: null, // Inicialmente sem totemId
     });
 
     await newUser.save();
@@ -45,7 +41,6 @@ router.post('/register', async (req, res) => {
 });
 
 
-// Login de usuário (sem criação de Totem)
 // Login de usuário (sem criação de Totem)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
