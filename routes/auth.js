@@ -5,7 +5,7 @@ const User = require('../models/User');
 const router = express.Router();
 
 // Rota de registro
-router.post('/auth/register', async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, totemId } = req.body;
 
