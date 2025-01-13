@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
     }
 
-    if (role === 'cliente' && !totemId) {
+    if (role === 'cliente' ) {
       return res.status(400).json({ error: 'Clientes devem ter um totemId.' });
     }
 
