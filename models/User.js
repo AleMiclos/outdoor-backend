@@ -5,9 +5,9 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, required: true },
-  totemId: { type: String, default: null }, // Permite que totemId seja nulo
+  totemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Totem', default: null }
 });
 
+const User = mongoose.model('User', userSchema);
 
-const User = mongoose.model('User', UserSchema);
 module.exports = User;
