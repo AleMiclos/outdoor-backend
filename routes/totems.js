@@ -19,7 +19,7 @@ router.get('/', authenticateToken, async (req, res) => {
 
 
 // Endpoint para listar os totens do usuário autenticado
-router.get('/totems/totems', authenticateToken, async (req, res) => {
+router.get('/totems?userId={id}', authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId; // Obtém o ID do usuário do token
     const userTotems = await Totem.find({ userId }); // Filtra pelos totens do usuário
@@ -56,7 +56,7 @@ router.get("/:totemId", async (req, res) => {
 // Endpoint para atualizar informações do totem por ID
 router.put("/:totemId", authenticateToken, async (req, res) => {
   const { totemId } = req.params;
-  const { title, description, videoUrl, isActive } = req.body;
+  const { title, description, videoUrl, isActive, address, isOnline } = req.body;
 
   console.log("Parâmetros da URL:", req.params);
   console.log("ID capturado:", req.params.totemId);
@@ -68,7 +68,7 @@ router.put("/:totemId", authenticateToken, async (req, res) => {
   }
 
   // Verificar campos obrigatórios
-  if (!title || !description || !videoUrl) {
+  if (title, description, videoUrl, isActive, address, isOnline) {
     console.error("Campos obrigatórios ausentes.");
     return res.status(400).json({
       error: "Todos os campos obrigatórios devem ser preenchidos (title, description, videoUrl).",
@@ -135,7 +135,7 @@ router.post('/totems', authenticateToken, async (req, res) => {
   const { title, description, videoUrl, isActive } = req.body;
 
   // Verifica se os campos obrigatórios estão presentes
-  if (!title || !description || !videoUrl) {
+  if (!title || !description || !videoUrl || !address) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
   }
 
@@ -145,7 +145,8 @@ router.post('/totems', authenticateToken, async (req, res) => {
       title,
       description,
       videoUrl,
-      isActive: isActive !== undefined ? isActive : true, // Valor padrão para `isActive`
+      isActive: isActive !== undefined ? isActive : true,
+      isOnline: isOnline !== undefined ? isOnline : false,
       userId: req.user.userId, // Pega o ID do usuário autenticado
     });
 

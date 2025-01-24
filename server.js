@@ -22,15 +22,10 @@ const authRoutes = require("./routes/auth");
 const totemRoutes = require("./routes/totems");
 const userRoutes = require('./routes/users');
 
-
 // Uso das rotas
 app.use("/auth", authRoutes);
 app.use("/totems", totemRoutes);
 app.use("/users", userRoutes);
-
-
-// app.use("/", totemRoutes);
-
 
 const MONGO_URI = process.env.MONGO_URI;
 
