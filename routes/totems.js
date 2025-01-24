@@ -57,7 +57,6 @@ router.put('/:totemId', authenticateToken, async (req, res) => {
   const { title, description, videoUrl, isActive, address, isOnline } = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(totemId)) {
-<<<<<<< HEAD
     console.error("ID inválido:", totemId);
     return res.status(400).json({ error: "ID do totem inválido." });
   }
@@ -68,9 +67,6 @@ router.put('/:totemId', authenticateToken, async (req, res) => {
     return res.status(400).json({
       error: "Todos os campos obrigatórios devem ser preenchidos (title, description, videoUrl).",
     });
-=======
-    return res.status(400).json({ error: 'ID do totem inválido.' });
->>>>>>> b72022b702df93b978da3b3f42f9430a30f8c388
   }
 
   try {
@@ -119,14 +115,9 @@ router.put('/:totemId', authenticateToken, async (req, res) => {
 router.post('/totems', authenticateToken, async (req, res) => {
   const { title, description, videoUrl, isActive, address, isOnline } = req.body;
 
-<<<<<<< HEAD
   // Verifica se os campos obrigatórios estão presentes
   if (!title || !description || !videoUrl || !address) {
     return res.status(400).json({ error: 'Todos os campos são obrigatórios.' });
-=======
-  if (!title || !description || !videoUrl || !address) {
-    return res.status(400).json({ error: 'Todos os campos obrigatórios devem ser preenchidos.' });
->>>>>>> b72022b702df93b978da3b3f42f9430a30f8c388
   }
 
   try {
@@ -136,12 +127,7 @@ router.post('/totems', authenticateToken, async (req, res) => {
       videoUrl,
       isActive: isActive !== undefined ? isActive : true,
       isOnline: isOnline !== undefined ? isOnline : false,
-<<<<<<< HEAD
       userId: req.user.userId, // Pega o ID do usuário autenticado
-=======
-      address,
-      userId: req.user.userId,
->>>>>>> b72022b702df93b978da3b3f42f9430a30f8c388
     });
 
     await newTotem.save();
