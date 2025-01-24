@@ -129,6 +129,29 @@ router.post('/totems', authenticateToken, async (req, res) => {
 });
 
 
+router.put("/totems/:id/status", async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const totem = await Totem.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true } // Retorna o documento atualizado
+    );
+
+    if (!totem) {
+      return res.status(404).json({ error: "Totem não encontrado" });
+    }
+
+    res.json(totem);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao atualizar o status do totem" });
+  }
+});
+
+module.exports = router;
+
 
 
 module.exports = router;
