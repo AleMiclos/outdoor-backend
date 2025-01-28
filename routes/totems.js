@@ -4,12 +4,10 @@ const Totem = require("../models/totem");
 const mongoose = require("mongoose");
 const authenticateToken = require("../middleware/authenticateToken");
 
-// Middleware para verificar o token
+// Rota para buscar todos os totens cadastrados
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const allTotems = await Totem.find();
-    console.log(allTotems);
-
     res.status(200).json(allTotems);
   } catch (error) {
     console.error('Erro ao buscar os totens:', error);
@@ -18,18 +16,26 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 
-// Endpoint para listar os totens do usuário autenticado
-router.get('/totems?userId={id}', authenticateToken, async (req, res) => {
+router.get('/by-user-id/:userId', authenticateToken, async (req, res) => {  
+  const { userId } = req.params; // Obtém o userId da URL
+
   try {
-    const userTotems = await Totem.find({ userId: req.user.userId });
+    const userTotems = await Totem.find({ userId });
+    
+    if (!userTotems.length) {
+      return res.status(404).json({ message: "Nenhum totem encontrado para este usuário." });
+    }
+
     res.status(200).json(userTotems);
   } catch (error) {
+    console.error('Erro ao buscar totens:', error);
     res.status(500).json({ error: 'Erro ao buscar os totens.' });
   }
 });
 
 
-// Endpoint para obter informações do totem por ID
+
+// Rota para listar um totem
 router.get("/:totemId", async (req, res) => {
   const { totemId } = req.params;
   if (!totemId || totemId === "undefined") {
@@ -87,9 +93,6 @@ router.put('/:totemId', authenticateToken, async (req, res) => {
 });
 
 
-
-
-
  router.delete('/:totemId', async (req, res) => {
   try {
     const { totemId } = req.params;
@@ -112,7 +115,7 @@ router.put('/:totemId', authenticateToken, async (req, res) => {
 });  
 
 // Endpoint para criar um novo totem
-router.post('/totems', authenticateToken, async (req, res) => {
+router.post('/new-totem', authenticateToken, async (req, res) => {
   const { title, description, videoUrl, isActive, address, isOnline } = req.body;
 
   // Verifica se os campos obrigatórios estão presentes
@@ -126,7 +129,7 @@ router.post('/totems', authenticateToken, async (req, res) => {
       description,
       videoUrl,
       isActive: isActive !== undefined ? isActive : true,
-      isOnline: isOnline !== undefined ? isOnline : false,
+      // isOnline: isOnline !== undefined ? isOnline : false,
       userId: req.user.userId, // Pega o ID do usuário autenticado
     });
 

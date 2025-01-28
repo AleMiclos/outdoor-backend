@@ -2,9 +2,6 @@ const jwt = require("jsonwebtoken");
 
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
-
-  console.log("Token recebido no middleware:", authHeader); // Log adicional
-
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(403).json({ error: "Token não fornecido ou inválido." });
   }
@@ -18,7 +15,6 @@ const authenticateToken = (req, res, next) => {
     }
 
     req.user = user; // Armazena os dados do token no objeto da requisição
-    console.log("Usuário autenticado:", user); // Log do usuário autenticado
     next();
   });
 };

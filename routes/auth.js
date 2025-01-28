@@ -45,8 +45,6 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
-  console.log('Tentativa de login:', { email });
-
   try {
     // Verifica se o email e a senha foram fornecidos
     if (!email || !password) {
@@ -86,11 +84,11 @@ router.post('/login', async (req, res) => {
     // Gera o token JWT
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    console.log('Login bem-sucedido:', {
-      userId: user._id,
-      email: user.email,
-      role: user.role,
-    });
+    // console.log('Login bem-sucedido:', {
+    //   userId: user._id,
+    //   email: user.email,
+    //   role: user.role,
+    // });
 
     // Retorna a resposta de sucesso com o token
     res.status(200).json({
