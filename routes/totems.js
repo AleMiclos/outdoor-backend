@@ -134,7 +134,7 @@ router.post('/new-totem', authenticateToken, async (req, res) => {
       description,
       videoUrl,
       address,
-      isActive: isActive !== undefined ? isActive : true,
+      // isActive: isActive !== undefined ? isActive : true,
       // isOnline: isOnline !== undefined ? isOnline : false,
       userId: req.user.userId, // Pega o ID do usuário autenticado
     });
