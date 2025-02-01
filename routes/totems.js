@@ -121,7 +121,7 @@ router.put('/:totemId', authenticateToken, async (req, res) => {
 
 // Endpoint para criar um novo totem
 router.post('/new-totem', authenticateToken, async (req, res) => {
-  const { title, description, videoUrl, isActive, address, isOnline } = req.body;
+  const { title, description, videoUrl, address } = req.body;
 
   // Verifica se os campos obrigatórios estão presentes
   if (!title || !description || !videoUrl || !address) {
