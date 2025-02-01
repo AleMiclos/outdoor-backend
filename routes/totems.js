@@ -16,12 +16,19 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 
-router.get('/by-user-id/:userId', authenticateToken, async (req, res) => {  
+router.get('/by-user-id/:userId', authenticateToken, async (req, res) => {
   const { userId } = req.params; // Obtém o userId da URL
+  const requestingUserId = req.user.userId; // Obtém o userId do usuário autenticado
+  const requestingUserRole = req.user.role; // Obtém a role do usuário autenticado
+
+  // Verifica se o usuário autenticado tem permissão para acessar os totens
+  if (requestingUserId !== userId && requestingUserRole !== 'admin') {
+    return res.status(403).json({ message: 'Acesso negado. Você não tem permissão para acessar este recurso.' });
+  }
 
   try {
     const userTotems = await Totem.find({ userId });
-    
+
     if (!userTotems.length) {
       return res.status(404).json({ message: "Nenhum totem encontrado para este usuário." });
     }
@@ -32,8 +39,6 @@ router.get('/by-user-id/:userId', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Erro ao buscar os totens.' });
   }
 });
-
-
 
 // Rota para listar um totem
 router.get("/:totemId", async (req, res) => {
@@ -78,7 +83,7 @@ router.put('/:totemId', authenticateToken, async (req, res) => {
   try {
     const updatedTotem = await Totem.findByIdAndUpdate(
       totemId,
-      { title, description, videoUrl, isActive, address, isOnline },
+      { title, description, videoUrl, address },
       { new: true, runValidators: true }
     );
 
@@ -128,6 +133,7 @@ router.post('/new-totem', authenticateToken, async (req, res) => {
       title,
       description,
       videoUrl,
+      address,
       isActive: isActive !== undefined ? isActive : true,
       // isOnline: isOnline !== undefined ? isOnline : false,
       userId: req.user.userId, // Pega o ID do usuário autenticado

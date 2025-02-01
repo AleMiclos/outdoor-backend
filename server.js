@@ -9,7 +9,7 @@ const app = express();
 
 // Configure o CORS para permitir múltiplas origens
 const corsOptions = {
-  origin: ["http://localhost:3000", "https://painel-outdoor.vercel.app"],
+  origin: ["http://localhost:4200", "https://painel-outdoor.vercel.app"],
   methods: "GET,POST,DELETE, PUT",
   allowedHeaders: "Content-Type,Authorization",
 };
