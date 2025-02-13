@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const bodyParser = require('body-parser');
 
 dotenv.config();
 
@@ -16,15 +17,18 @@ const corsOptions = {
 
 app.use(cors(corsOptions)); // Use o CORS com as opções configuradas
 app.use(express.json());
+app.use(bodyParser.json()); 
 
-// Importação das rotas
+// Certifique-se de usar o middleware body-parser corretamente// Importação das rotas
 const authRoutes = require("./routes/auth");
-const totemRoutes = require("./routes/totems");
+const serviçosRoutes = require("./routes/services");
 const userRoutes = require('./routes/users');
 
+
 // Uso das rotas
+
 app.use("/auth", authRoutes);
-app.use("/totems", totemRoutes);
+app.use("/services", serviçosRoutes);
 app.use("/users", userRoutes);
 
 const MONGO_URI = process.env.MONGO_URI;

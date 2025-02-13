@@ -4,10 +4,11 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['admin', 'cliente'], default: 'cliente' },
-  totemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Totem', default: null }
+  role: { type: String, enum: ['admin', 'user'], default: 'user' },
+  permissions: {
+    totens: { type: Boolean, default: false },
+    tvs: { type: Boolean, default: false }
+  }
 });
 
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
+module.exports = mongoose.model('User', userSchema);
