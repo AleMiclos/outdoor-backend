@@ -23,13 +23,14 @@ app.use(bodyParser.json());
 const authRoutes = require("./routes/auth");
 const serviçosRoutes = require("./routes/services");
 const userRoutes = require('./routes/users');
-
+const tvRoutes = require('./routes/tvRoutes');
 
 // Uso das rotas
 
 app.use("/auth", authRoutes);
 app.use("/services", serviçosRoutes);
 app.use("/users", userRoutes);
+app.use("/", tvRoutes);
 
 const MONGO_URI = process.env.MONGO_URI;
 

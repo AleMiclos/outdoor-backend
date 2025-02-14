@@ -58,4 +58,56 @@ router.delete("/:id", authenticateToken, authorizeRole(["admin"]), async (req, r
   }
 });
 
+
+router.put("/permissions/:id", authenticateToken, authorizeRole(["admin"]), async (req, res) => {
+  const { id } = req.params;
+  const { tvs, totens } = req.body;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(id, { 
+      "permissions.tvs": tvs, 
+      "permissions.totens": totens 
+    }, { new: true });
+    
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+    res.json(updatedUser);
+  } catch (err) {
+    res.status(500).json({ error: "Erro ao atualizar permissões" });
+  }
+});
+
+// Buscar usuários com permissão para TV
+router.get('/users/tv', authenticateToken, async (req, res) => {
+  try {
+    console.log("Buscando usuários com permissão para TV..."); // Log para depuração
+    const users = await User.find({ "permissions.tvs": true }, "name email permissions");
+    
+    console.log("Usuários encontrados:", users); // Verificar se realmente encontrou
+    res.json(users);
+  } catch (err) {
+    console.error("Erro na rota /users/tv:", err); // Log detalhado do erro
+    res.status(500).json({ message: 'Erro ao buscar usuários com permissão para TV', error: err.message });
+  }
+});
+
+
+
+// Buscar TVs atribuídas a um usuário
+router.get('/user/:id/tvs', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await User.findById(id).populate('assignedTvs');
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+    res.json(user.assignedTvs);
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar TVs do usuário' });
+  }
+});
+
+
 module.exports = router;
