@@ -28,15 +28,19 @@ router.get('/tv/:userId', async (req, res) => {
 });
 
 // Adicionar TV
-router.post('/tv', async (req, res) => {
+router.post("/tv", async (req, res) => {
   try {
-    const newTv = new Tv(req.body);
-    const savedTv = await newTv.save();
-    res.status(201).json(savedTv);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.log("Recebendo dados:", req.body); // <-- Verificar se o `user` está vindo corretamente
+
+    const tv = new Tv(req.body);
+    await tv.save();
+    res.status(201).json(tv);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
+
+
 
 // Atualizar TV
 router.put('/tv/:tvId', async (req, res) => {

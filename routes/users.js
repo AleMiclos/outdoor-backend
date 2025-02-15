@@ -17,18 +17,7 @@ router.get("/", authenticateToken, authorizeRole(["admin"]), async (req, res) =>
 });
 
 // Buscar um usuário por ID e suas permissões
-router.get("/:id", authenticateToken, authorizeRole(["admin"]), async (req, res) => {
-  const { id } = req.params;
-  try {
-    const user = await User.findById(id).populate('permissions');
-    if (!user) {
-      return res.status(404).json({ message: "Usuário não encontrado" });
-    }
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar usuário", error: error.message });
-  }
-});
+
 
 // Atualizar um usuário (Somente Admin pode atualizar)
 router.put("/:id", authenticateToken, async (req, res) => {
@@ -79,16 +68,29 @@ router.put("/permissions/:id", authenticateToken, authorizeRole(["admin"]), asyn
 });
 
 // Buscar usuários com permissão para TV
-router.get('/users/tv', authenticateToken, async (req, res) => {
+router.get('/tv', authenticateToken, async (req, res) => {
   try {
-    console.log("Buscando usuários com permissão para TV..."); // Log para depuração
+    console.log("Buscando usuários com permissão para TV...");
     const users = await User.find({ "permissions.tvs": true }, "name email permissions");
-    
-    console.log("Usuários encontrados:", users); // Verificar se realmente encontrou
+    console.log("Usuários encontrados:", users);
     res.json(users);
   } catch (err) {
-    console.error("Erro na rota /users/tv:", err); // Log detalhado do erro
+    console.error("Erro na rota /users/tv:", err);
     res.status(500).json({ message: 'Erro ao buscar usuários com permissão para TV', error: err.message });
+  }
+});
+
+// Buscar um usuário por ID e suas permissões (deixe essa abaixo)
+router.get("/:id", authenticateToken, authorizeRole(["admin"]), async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id).populate('permissions');
+    if (!user) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar usuário", error: error.message });
   }
 });
 
