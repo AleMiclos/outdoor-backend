@@ -1,78 +1,99 @@
 const express = require('express');
 const router = express.Router();
 const Tv = require('../models/TvModel');
-const { isValidObjectId } = require('mongoose');
 
-// Buscar todas as TVs
-router.get('/tv', async (req, res) => {
+// Criar uma nova TV
+router.post('/tv', async (req, res) => {
   try {
-    const tvs = await Tv.find().populate('user', 'name email');
-    res.json(tvs);
-  } catch (err) {
-    res.status(500).json({ error: 'Erro ao buscar TVs' });
-  }
-});
+    const { youtubeLink, vimeoLink, address, user, status } = req.body;
 
-// Buscar TVs por usuário
-router.get('/tv/:userId', async (req, res) => {
-  const { userId } = req.params;
-  if (!isValidObjectId(userId)) {
-    return res.status(400).json({ error: 'ID de usuário inválido' });
-  }
-  try {
-    const tvs = await Tv.find({ user: userId });
-    res.json(tvs);
-  } catch (err) {
-    res.status(500).json({ error: 'Erro ao buscar TVs do usuário' });
-  }
-});
+    // Validação: Pelo menos um link deve ser fornecido
+    if (!youtubeLink && !vimeoLink) {
+      return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
+    }
 
-// Adicionar TV
-router.post("/tv", async (req, res) => {
-  try {
-    console.log("Recebendo dados:", req.body); // <-- Verificar se o `user` está vindo corretamente
+    // Validação: Verifica se o link do YouTube é válido (opcional)
+    if (youtubeLink && !youtubeLink.includes('youtube.com') && !youtubeLink.includes('youtu.be')) {
+      return res.status(400).json({ message: "Link do YouTube inválido." });
+    }
 
-    const tv = new Tv(req.body);
-    await tv.save();
-    res.status(201).json(tv);
+    // Validação: Verifica se o link do Vimeo é válido (opcional)
+    if (vimeoLink && !vimeoLink.includes('vimeo.com')) {
+      return res.status(400).json({ message: "Link do Vimeo inválido." });
+    }
+
+    const newTv = new Tv({ youtubeLink, vimeoLink, address, user, status });
+    await newTv.save();
+
+    res.status(201).json(newTv);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: "Erro ao criar TV", error: error.message });
   }
 });
 
+// Buscar todas as TVs de um usuário
+router.get('/tv/user/:userId', async (req, res) => {
+  try {
+    const tvs = await Tv.find({ user: req.params.userId });
+    res.status(200).json(tvs);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar TVs", error: error.message });
+  }
+});
 
+// Buscar uma TV pelo ID
+router.get('/tv/:tvId', async (req, res) => {
+  try {
+    const tv = await Tv.findById(req.params.tvId);
 
-// Atualizar TV
+    if (!tv) {
+      return res.status(404).json({ message: "TV não encontrada" });
+    }
+
+    res.status(200).json(tv);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar TV", error: error.message });
+  }
+});
+
+// Atualizar uma TV pelo ID
 router.put('/tv/:tvId', async (req, res) => {
-  const { tvId } = req.params;
-  if (!isValidObjectId(tvId)) {
-    return res.status(400).json({ error: 'ID de TV inválido' });
-  }
   try {
-    const updatedTv = await Tv.findByIdAndUpdate(tvId, req.body, { new: true, runValidators: true });
-    if (!updatedTv) {
-      return res.status(404).json({ error: 'TV não encontrada' });
+    const { youtubeLink, vimeoLink, address, status } = req.body;
+
+    // Validação: Pelo menos um link deve ser informado
+    if (!youtubeLink && !vimeoLink) {
+      return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
     }
-    res.json(updatedTv);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+
+    const updatedTv = await Tv.findByIdAndUpdate(
+      req.params.tvId,
+      { youtubeLink, vimeoLink, address, status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedTv) {
+      return res.status(404).json({ message: "TV não encontrada" });
+    }
+
+    res.status(200).json(updatedTv);
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao atualizar TV", error: error.message });
   }
 });
 
-// Excluir TV
+// Deletar uma TV pelo ID
 router.delete('/tv/:tvId', async (req, res) => {
-  const { tvId } = req.params;
-  if (!isValidObjectId(tvId)) {
-    return res.status(400).json({ error: 'ID de TV inválido' });
-  }
   try {
-    const deletedTv = await Tv.findByIdAndDelete(tvId);
+    const deletedTv = await Tv.findByIdAndDelete(req.params.tvId);
+
     if (!deletedTv) {
-      return res.status(404).json({ error: 'TV não encontrada' });
+      return res.status(404).json({ message: "TV não encontrada" });
     }
-    res.json({ message: 'TV deletada com sucesso' });
-  } catch (err) {
-    res.status(500).json({ error: 'Erro ao deletar TV' });
+
+    res.status(200).json({ message: "TV deletada com sucesso" });
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao deletar TV", error: error.message });
   }
 });
 
