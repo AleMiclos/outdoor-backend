@@ -1,7 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Tv = require("../models/TvModel");
-const Totem = require("../models/Totem");
 const authenticateToken = require("../middleware/authenticateToken");
 const authorizeRole = require("../middleware/authorizePermission");
 
