@@ -21,16 +21,16 @@ app.use(bodyParser.json());
 
 // Certifique-se de usar o middleware body-parser corretamente// Importação das rotas
 const authRoutes = require("./routes/auth");
-const serviçosRoutes = require("./routes/services");
+const totemRoutes = require("./routes/totem");
 const userRoutes = require('./routes/users');
 const tvRoutes = require('./routes/tvRoutes');
 
 // Uso das rotas
 
 app.use("/auth", authRoutes);
-app.use("/services", serviçosRoutes);
+app.use("/totem", totemRoutes);
 app.use("/users", userRoutes);
-app.use("/", tvRoutes);
+app.use("/tv", tvRoutes);
 
 const MONGO_URI = process.env.MONGO_URI;
 

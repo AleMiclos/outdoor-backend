@@ -3,7 +3,7 @@ const router = express.Router();
 const Tv = require('../models/TvModel');
 
 // Criar uma nova TV
-router.post('/tv', async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { youtubeLink, vimeoLink, address, user, status } = req.body;
 
@@ -32,7 +32,7 @@ router.post('/tv', async (req, res) => {
 });
 
 // Buscar todas as TVs de um usuário
-router.get('/tv/user/:userId', async (req, res) => {
+router.get('/user/:userId', async (req, res) => {
   try {
     const tvs = await Tv.find({ user: req.params.userId });
     res.status(200).json(tvs);
@@ -42,7 +42,7 @@ router.get('/tv/user/:userId', async (req, res) => {
 });
 
 // Buscar uma TV pelo ID
-router.get('/tv/:tvId', async (req, res) => {
+router.get('/:tvId', async (req, res) => {
   try {
     const tv = await Tv.findById(req.params.tvId);
 
@@ -57,7 +57,7 @@ router.get('/tv/:tvId', async (req, res) => {
 });
 
 // Atualizar uma TV pelo ID
-router.put('/tv/:tvId', async (req, res) => {
+router.put('/:tvId', async (req, res) => {
   try {
     const { youtubeLink, vimeoLink, address, status } = req.body;
 
@@ -83,7 +83,7 @@ router.put('/tv/:tvId', async (req, res) => {
 });
 
 // Deletar uma TV pelo ID
-router.delete('/tv/:tvId', async (req, res) => {
+router.delete('/:tvId', async (req, res) => {
   try {
     const deletedTv = await Tv.findByIdAndDelete(req.params.tvId);
 
