@@ -97,4 +97,22 @@ router.delete('/:tvId', async (req, res) => {
   }
 });
 
+router.post('/status-tv', async (req, res) => {
+  console.log('Corpo da requisição:', req.body); // Adicione este log
+  const { tvId, status } = req.body;
+
+  if (!tvId || status === undefined) {
+    return res.status(400).json({ error: 'tvId e status são obrigatórios' });
+  }
+
+  try {
+    await Tv.findByIdAndUpdate(tvId, { status });
+    res.status(200).json({ message: 'Status atualizado com sucesso' });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao atualizar status' });
+  }
+});
+
+
+
 module.exports = router;
