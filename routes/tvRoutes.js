@@ -99,7 +99,7 @@ router.delete('/:tvId', authenticateToken, async (req, res) => {
   }
 });
 
-router.post('/status-tv', authenticateToken, async (req, res) => {
+router.post('/status-tv', async (req, res) => {
   console.log('Corpo da requisição:', req.body); // Adicione este log
   const { tvId, status } = req.body;
 
@@ -115,7 +115,7 @@ router.post('/status-tv', authenticateToken, async (req, res) => {
   }
 });
 
-router.get('/status-tv/:tvId', authenticateToken, async (req, res) => {
+router.get('/status-tv/:tvId', async (req, res) => {
   const { tvId } = req.params;
 
   if (!tvId) {
