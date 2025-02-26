@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Tv = require('../models/TvModel');
+const authenticateToken = require("../middleware/authenticateToken");
+
 
 // Criar uma nova TV
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { youtubeLink, vimeoLink, address, user, status } = req.body;
 
@@ -32,7 +34,7 @@ router.post('/', async (req, res) => {
 });
 
 // Buscar todas as TVs de um usuário
-router.get('/user/:userId', async (req, res) => {
+router.get('/user/:userId', authenticateToken, async (req, res) => {
   try {
     const tvs = await Tv.find({ user: req.params.userId });
     res.status(200).json(tvs);
@@ -57,7 +59,7 @@ router.get('/:tvId', async (req, res) => {
 });
 
 // Atualizar uma TV pelo ID
-router.put('/:tvId', async (req, res) => {
+router.put('/:tvId', authenticateToken, async (req, res) => {
   try {
     const { youtubeLink, vimeoLink, address, status } = req.body;
 
@@ -83,7 +85,7 @@ router.put('/:tvId', async (req, res) => {
 });
 
 // Deletar uma TV pelo ID
-router.delete('/:tvId', async (req, res) => {
+router.delete('/:tvId', authenticateToken, async (req, res) => {
   try {
     const deletedTv = await Tv.findByIdAndDelete(req.params.tvId);
 
@@ -97,7 +99,7 @@ router.delete('/:tvId', async (req, res) => {
   }
 });
 
-router.post('/status-tv', async (req, res) => {
+router.post('/status-tv', authenticateToken, async (req, res) => {
   console.log('Corpo da requisição:', req.body); // Adicione este log
   const { tvId, status } = req.body;
 
@@ -113,6 +115,22 @@ router.post('/status-tv', async (req, res) => {
   }
 });
 
+router.get('/status-tv/:tvId', authenticateToken, async (req, res) => {
+  const { tvId } = req.params;
 
+  if (!tvId) {
+    return res.status(400).json({ error: 'tvId é obrigatório' });
+  }
+
+  try {
+    const tv = await Tv.findById(tvId).select('status');
+    if (!tv) {
+      return res.status(404).json({ error: 'TV não encontrada' });
+    }
+    res.status(200).json({ status: tv.status });
+  } catch (err) {
+    res.status(500).json({ error: 'Erro ao buscar status da TV' });
+  }
+});
 
 module.exports = router;

@@ -21,7 +21,7 @@ const TvSchema = new mongoose.Schema({
   },
   address: { type: String, required: true },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  status: { type: String, enum: ["ativo", "inativo"], default: "ativo" }
+  status: { type: String, default: "ativo" }
 }, { timestamps: true });
 
 // Garantir que pelo menos um dos links seja informado
