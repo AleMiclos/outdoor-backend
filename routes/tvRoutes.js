@@ -99,38 +99,65 @@ router.delete('/:tvId', authenticateToken, async (req, res) => {
   }
 });
 
+// Atualiza o status da TV
 router.post('/status-tv', async (req, res) => {
-  console.log('Corpo da requisição:', req.body); // Adicione este log
+  console.log('Corpo da requisição:', req.body); // Log para depuração
+
   const { tvId, status } = req.body;
 
+  // Validação dos dados
   if (!tvId || status === undefined) {
+    console.error('Erro de validação: tvId e status são obrigatórios');
     return res.status(400).json({ error: 'tvId e status são obrigatórios' });
   }
 
   try {
-    await Tv.findByIdAndUpdate(tvId, { status });
-    res.status(200).json({ message: 'Status atualizado com sucesso' });
+    // Atualiza o status da TV no banco de dados
+    const updatedTv = await Tv.findByIdAndUpdate(
+      tvId,
+      { status },
+      { new: true } // Retorna o documento atualizado
+    );
+
+    if (!updatedTv) {
+      console.error('TV não encontrada:', tvId);
+      return res.status(404).json({ error: 'TV não encontrada' });
+    }
+
+    console.log('Status atualizado com sucesso:', updatedTv);
+    res.status(200).json({ message: 'Status atualizado com sucesso', tv: updatedTv });
   } catch (err) {
+    console.error('Erro ao atualizar status:', err);
     res.status(500).json({ error: 'Erro ao atualizar status' });
   }
 });
 
+// Obtém o status da TV
 router.get('/status-tv/:tvId', async (req, res) => {
   const { tvId } = req.params;
 
+  // Validação do tvId
   if (!tvId) {
+    console.error('Erro de validação: tvId é obrigatório');
     return res.status(400).json({ error: 'tvId é obrigatório' });
   }
 
   try {
+    // Busca o status da TV no banco de dados
     const tv = await Tv.findById(tvId).select('status');
+
     if (!tv) {
+      console.error('TV não encontrada:', tvId);
       return res.status(404).json({ error: 'TV não encontrada' });
     }
+
+    console.log('Status da TV encontrado:', tv);
     res.status(200).json({ status: tv.status });
   } catch (err) {
+    console.error('Erro ao buscar status da TV:', err);
     res.status(500).json({ error: 'Erro ao buscar status da TV' });
   }
 });
+
 
 module.exports = router;
