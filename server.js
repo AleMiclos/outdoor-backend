@@ -10,7 +10,7 @@ const app = express();
 
 // Configure o CORS para permitir múltiplas origens
 const corsOptions = {
-  origin: ["http://localhost:4200", "https://all-door-frontend.vercel.app", "https://alldoor.vercel.app" ],
+  origin: ["http://localhost:4200", "https://all-door-frontend.vercel.app", "https://alldoor-frontend.vercel.app",  ],
   methods: "GET,POST,DELETE, PUT",
   allowedHeaders: "Content-Type,Authorization",
 };
