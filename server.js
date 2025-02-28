@@ -13,6 +13,7 @@ const corsOptions = {
   origin: ["http://localhost:4200", "https://all-door-frontend.vercel.app", "https://alldoor-frontend.vercel.app",  ],
   methods: "GET,POST,DELETE, PUT",
   allowedHeaders: "Content-Type,Authorization",
+  credentials: true
 };
 
 app.use(cors(corsOptions)); // Use o CORS com as opções configuradas
