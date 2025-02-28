@@ -7,24 +7,23 @@ const authenticateToken = require("../middleware/authenticateToken");
 // Criar uma nova TV
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { youtubeLink, vimeoLink, address, user, status } = req.body;
+    const { youtubeLink1, youtubeLink2, address, user, status } = req.body;
 
     // Validação: Pelo menos um link deve ser fornecido
-    if (!youtubeLink && !vimeoLink) {
-      return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
+    if (!youtubeLink1 && !youtubeLink2) {
+      return res.status(400).json({ message: "Forneça pelo menos um link do YouTube." });
     }
 
-    // Validação: Verifica se o link do YouTube é válido (opcional)
-    if (youtubeLink && !youtubeLink.includes('youtube.com') && !youtubeLink.includes('youtu.be')) {
-      return res.status(400).json({ message: "Link do YouTube inválido." });
+    // Validação: Verifica se os links do YouTube são válidos (opcional)
+    if (youtubeLink1 && !youtubeLink1.includes('youtube.com') && !youtubeLink1.includes('youtu.be')) {
+      return res.status(400).json({ message: "Primeiro link do YouTube inválido." });
+    }
+    
+    if (youtubeLink2 && !youtubeLink2.includes('youtube.com') && !youtubeLink2.includes('youtu.be')) {
+      return res.status(400).json({ message: "Segundo link do YouTube inválido." });
     }
 
-    // Validação: Verifica se o link do Vimeo é válido (opcional)
-    if (vimeoLink && !vimeoLink.includes('vimeo.com')) {
-      return res.status(400).json({ message: "Link do Vimeo inválido." });
-    }
-
-    const newTv = new Tv({ youtubeLink, vimeoLink, address, user, status });
+    const newTv = new Tv({ youtubeLink1, youtubeLink2, address, user, status });
     await newTv.save();
 
     res.status(201).json(newTv);
@@ -32,6 +31,7 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Erro ao criar TV", error: error.message });
   }
 });
+
 
 // Buscar todas as TVs de um usuário
 router.get('/user/:userId', authenticateToken, async (req, res) => {
