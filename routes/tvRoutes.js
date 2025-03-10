@@ -101,26 +101,22 @@ router.delete('/:tvId', authenticateToken, async (req, res) => {
 
 // Atualiza o status da TV
 router.post('/status-tv', async (req, res) => {
-  console.log('Corpo da requisição:', req.body); // Log para depuração
+  console.log('Corpo da requisição:', req.body); 
 
   const { tvId, status } = req.body;
 
-  // Validação dos dados
   if (!tvId || status === undefined) {
-    console.error('Erro de validação: tvId e status são obrigatórios');
     return res.status(400).json({ error: 'tvId e status são obrigatórios' });
   }
 
   try {
-    // Atualiza o status da TV no banco de dados
     const updatedTv = await Tv.findByIdAndUpdate(
       tvId,
-      { status },
-      { new: true } // Retorna o documento atualizado
+      { status, lastUpdate: Date.now() }, // 🆕 Atualiza `lastUpdate`
+      { new: true }
     );
 
     if (!updatedTv) {
-      console.error('TV não encontrada:', tvId);
       return res.status(404).json({ error: 'TV não encontrada' });
     }
 
@@ -131,6 +127,23 @@ router.post('/status-tv', async (req, res) => {
     res.status(500).json({ error: 'Erro ao atualizar status' });
   }
 });
+
+router.get('/status-tv', async (req, res) => {
+  try {
+    const latestTv = await Tv.findOne().sort({ lastUpdate: -1 }).select('lastUpdate');
+
+    if (!latestTv) {
+      return res.status(404).json({ error: 'Nenhuma TV encontrada' });
+    }
+
+    res.status(200).json({ lastUpdate: latestTv.lastUpdate });
+  } catch (err) {
+    console.error('Erro ao buscar `lastUpdate`:', err);
+    res.status(500).json({ error: 'Erro ao buscar atualização da TV' });
+  }
+});
+
+
 
 // Obtém o status da TV
 router.get('/status-tv/:tvId', async (req, res) => {
