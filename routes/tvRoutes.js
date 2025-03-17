@@ -2,6 +2,18 @@ const express = require('express');
 const router = express.Router();
 const Tv = require('../models/TvModel');
 const authenticateToken = require("../middleware/authenticateToken");
+const tvClients = new Map(); // Defina tvClients no escopo global
+
+// Exemplo de como adicionar uma conexão WebSocket ao Map
+wss.on('connection', (ws, req) => {
+  const tvId = req.url.split('/').pop(); // Extrai o ID da TV da URL
+  tvClients.set(tvId, ws); // Armazena a conexão WebSocket no Map
+
+  ws.on('close', () => {
+    tvClients.delete(tvId); // Remove a conexão quando fechada
+  });
+});
+
 
 // Exportar uma função que recebe o WebSocket Server (wss)
 module.exports = (wss) => {
@@ -61,44 +73,31 @@ module.exports = (wss) => {
 
   router.put("/:tvId", authenticateToken, async (req, res) => {
     try {
-      console.log("Requisição recebida para atualizar TV com ID:", req.params.tvId);
-      console.log("Body da requisição:", req.body);
-  
       const { youtubeLink, vimeoLink, address, status } = req.body;
       const { tvId } = req.params;
   
       if (!youtubeLink && !vimeoLink) {
-        console.log("Nenhum link fornecido");
         return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
       }
   
-      console.log("Buscando TV no banco de dados...");
       const updatedTv = await Tv.findByIdAndUpdate(
         tvId,
         { youtubeLink, vimeoLink, address, status },
         { new: true, runValidators: true }
-      ).catch(err => {
-        console.error("Erro ao atualizar TV no banco de dados:", err);
-        throw err;
-      });
+      );
   
       if (!updatedTv) {
-        console.log("TV não encontrada com ID:", tvId);
         return res.status(404).json({ message: "TV não encontrada" });
       }
   
-      console.log("TV atualizada com sucesso:", updatedTv);
-  
       // Envia evento WebSocket apenas para a TV específica
-      const ws = tvClients.get(tvId);
+      const ws = tvClients.get(tvId); // Usa tvClients para obter a conexão WebSocket
       if (ws && ws.readyState === 1) {
-        console.log("Enviando atualização via WebSocket para a TV:", tvId);
         ws.send(JSON.stringify({ type: "tvUpdate", tv: updatedTv }));
       }
   
       res.status(200).json(updatedTv);
     } catch (error) {
-      console.error("Erro ao atualizar TV:", error);
       res.status(500).json({ message: "Erro ao atualizar TV", error: error.message });
     }
   });
