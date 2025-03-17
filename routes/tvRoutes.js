@@ -62,30 +62,35 @@ module.exports = (wss) => {
   router.put("/:tvId", authenticateToken, async (req, res) => {
     try {
       const { youtubeLink, vimeoLink, address, status } = req.body;
-
+      const { tvId } = req.params;
+  
+      // Verifica se pelo menos um link foi fornecido
       if (!youtubeLink && !vimeoLink) {
         return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
       }
-
+  
+      // Atualiza todas as informações da TV
       const updatedTv = await Tv.findByIdAndUpdate(
-        req.params.tvId,
+        tvId,
         { youtubeLink, vimeoLink, address, status },
         { new: true, runValidators: true }
       );
-
+  
+      // Verifica se a TV foi encontrada e atualizada
       if (!updatedTv) {
         return res.status(404).json({ message: "TV não encontrada" });
       }
-
-      // Enviar evento WebSocket para atualizar as TVs no frontend
-      wss.clients.forEach((client) => {
-        if (client.readyState === 1) {
-          client.send(JSON.stringify({ type: "tvUpdate", tv: updatedTv }));
-        }
-      });
-
+  
+      // Envia evento WebSocket apenas para a TV específica
+      const ws = tvClients.get(tvId); // tvClients é um Map que armazena as conexões WebSocket das TVs
+      if (ws && ws.readyState === 1) { // Verifica se a conexão WebSocket está aberta
+        ws.send(JSON.stringify({ type: "tvUpdate", tv: updatedTv }));
+      }
+  
+      // Retorna a TV atualizada
       res.status(200).json(updatedTv);
     } catch (error) {
+      // Trata erros inesperados
       res.status(500).json({ message: "Erro ao atualizar TV", error: error.message });
     }
   });
