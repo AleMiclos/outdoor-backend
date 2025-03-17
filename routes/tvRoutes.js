@@ -129,12 +129,12 @@ module.exports = (wss) => {
       console.log("Status atualizado com sucesso:", updatedTv);
 
       // Enviar evento WebSocket para atualização de status
-      if (tvClients.has(req.params.tvId)) {
-        const ws = tvClients.get(req.params.tvId);
-        if (ws.readyState === 1) {
+      if (tvClients.has(tvId)) {
+        const ws = tvClients.get(tvId);
+        if (ws.readyState === WebSocket.OPEN) {
           ws.send(JSON.stringify({ type: "tvUpdate", tv: updatedTv }));
         }
-      }
+      }      
       
 
       res.status(200).json({ message: "Status atualizado com sucesso", tv: updatedTv });
