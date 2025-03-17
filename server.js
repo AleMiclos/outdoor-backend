@@ -36,29 +36,33 @@ const clients = new Map();
 
 wss.on("connection", (ws, req) => {
   const token = req.headers['sec-websocket-protocol'];
-  if (!token) {
-    ws.close(4001, 'Token de autenticação ausente');
-    return;
+
+  if (token) {
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      if (err) {
+        ws.close(4001, 'Token inválido');
+        return;
+      }
+
+      console.log(`Cliente autenticado: ${user.id}`);
+      clients.set(user.id, ws);
+    });
+  } else {
+    console.log("Cliente conectado sem autenticação.");
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      ws.close(4001, 'Token inválido');
-      return;
-    }
-
-    console.log(`Cliente autenticado: ${user.id}`);
-    clients.set(user.id, ws);
-
-    // Configura um ping/pong para manter a conexão ativa
+  // Configura um ping/pong para manter a conexão ativa
+  ws.isAlive = true;
+  ws.on('pong', () => {
     ws.isAlive = true;
-    ws.on('pong', () => {
-      ws.isAlive = true;
-    });
+  });
 
-    ws.on('close', () => {
-      clients.delete(user.id);
-      console.log(`Cliente ${user.id} desconectado.`);
+  ws.on('close', () => {
+    clients.forEach((clientWs, userId) => {
+      if (clientWs === ws) {
+        clients.delete(userId);
+        console.log(`Cliente ${userId} desconectado.`);
+      }
     });
   });
 });
