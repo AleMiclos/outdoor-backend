@@ -77,29 +77,36 @@ module.exports = (wss) => {
       try {
         const { youtubeLink, vimeoLink, address, status } = req.body;
         const { tvId } = req.params;
-  
+    
+        console.log("Tentando atualizar TV com ID:", tvId);
+    
         if (!youtubeLink && !vimeoLink) {
           return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
         }
-  
+    
         const updatedTv = await Tv.findByIdAndUpdate(
           tvId,
           { youtubeLink, vimeoLink, address, status },
           { new: true, runValidators: true }
-        );
-  
+        ).catch(err => {
+          console.error("Erro ao atualizar TV no banco de dados:", err);
+          throw err;
+        });
+    
         if (!updatedTv) {
+          console.log("TV não encontrada com ID:", tvId);
           return res.status(404).json({ message: "TV não encontrada" });
         }
-  
+    
         // Enviar evento WebSocket apenas para a TV específica
         const ws = tvClients.get(tvId);
         if (ws && ws.readyState === 1) {
           ws.send(JSON.stringify({ type: "tvUpdate", tv: updatedTv }));
         }
-  
+    
         res.status(200).json(updatedTv);
       } catch (error) {
+        console.error("Erro ao atualizar TV:", error);
         res.status(500).json({ message: "Erro ao atualizar TV", error: error.message });
       }
     });
