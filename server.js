@@ -33,12 +33,9 @@ const server = require("http").createServer(app);
 // Configuração do WebSocket
 const wss = new WebSocket.Server({ server });
 const clients = new Map();
-const tvClients = new Map();
 
 wss.on("connection", (ws, req) => {
   const token = req.headers['sec-websocket-protocol'];
-  const urlParams = new URL(req.url, `http://${req.headers.host}`).searchParams;
-  const tvId = urlParams.get('tvId'); // Captura o tvId da URL
 
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
@@ -50,10 +47,6 @@ wss.on("connection", (ws, req) => {
       console.log(`Cliente autenticado: ${user.id}`);
       clients.set(user.id, ws);
     });
-  } else if (tvId) {
-    // Se for uma TV, armazena a conexão no mapa
-    console.log(`TV conectada: ${tvId}`);
-    tvClients.set(tvId, ws);
   } else {
     console.log("Cliente conectado sem autenticação.");
   }
@@ -65,13 +58,6 @@ wss.on("connection", (ws, req) => {
   });
 
   ws.on('close', () => {
-    // Remove a TV desconectada do mapa
-    if (tvId && tvClients.has(tvId)) {
-      tvClients.delete(tvId);
-      console.log(`TV desconectada: ${tvId}`);
-    }
-
-    // Remove clientes autenticados do mapa
     clients.forEach((clientWs, userId) => {
       if (clientWs === ws) {
         clients.delete(userId);
@@ -92,7 +78,6 @@ setInterval(() => {
     ws.ping();
   });
 }, 30000);
-
 
 // Importação das rotas
 const authRoutes = require("./routes/auth");
