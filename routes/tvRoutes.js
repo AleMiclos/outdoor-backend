@@ -59,37 +59,53 @@ module.exports = (wss) => {
     }
   });
 
-  // Atualizar uma TV pelo ID
-  router.put("/:tvId", authenticateToken, async (req, res) => {
-    try {
-      const { youtubeLink, vimeoLink, address, status } = req.body;
+  const tvClients = new Map(); // Mapeia TVs conectadas ao WebSocket
 
-      if (!youtubeLink && !vimeoLink) {
-        return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
+  module.exports = (wss) => {
+    wss.on("connection", (ws, req) => {
+      const tvId = req.url.split("/").pop();
+      if (tvId) {
+        tvClients.set(tvId, ws);
+        ws.on("close", () => {
+          tvClients.delete(tvId);
+        });
       }
-
-      const updatedTv = await Tv.findByIdAndUpdate(
-        req.params.tvId,
-        { youtubeLink, vimeoLink, address, status },
-        { new: true, runValidators: true }
-      );
-
-      if (!updatedTv) {
-        return res.status(404).json({ message: "TV não encontrada" });
-      }
-
-      // Enviar evento WebSocket para atualizar as TVs no frontend
-      wss.clients.forEach((client) => {
-        if (client.readyState === 1) {
-          client.send(JSON.stringify({ type: "tvUpdate", tv: updatedTv }));
+    });
+  
+    // Atualizar uma TV pelo ID
+    router.put("/:tvId", authenticateToken, async (req, res) => {
+      try {
+        const { youtubeLink, vimeoLink, address, status } = req.body;
+        const { tvId } = req.params;
+  
+        if (!youtubeLink && !vimeoLink) {
+          return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
         }
-      });
-
-      res.status(200).json(updatedTv);
-    } catch (error) {
-      res.status(500).json({ message: "Erro ao atualizar TV", error: error.message });
-    }
-  });
+  
+        const updatedTv = await Tv.findByIdAndUpdate(
+          tvId,
+          { youtubeLink, vimeoLink, address, status },
+          { new: true, runValidators: true }
+        );
+  
+        if (!updatedTv) {
+          return res.status(404).json({ message: "TV não encontrada" });
+        }
+  
+        // Enviar evento WebSocket apenas para a TV específica
+        const ws = tvClients.get(tvId);
+        if (ws && ws.readyState === 1) {
+          ws.send(JSON.stringify({ type: "tvUpdate", tv: updatedTv }));
+        }
+  
+        res.status(200).json(updatedTv);
+      } catch (error) {
+        res.status(500).json({ message: "Erro ao atualizar TV", error: error.message });
+      }
+    });
+  
+    return router;
+  };
 
   // Deletar uma TV pelo ID
   router.delete('/:tvId', authenticateToken, async (req, res) => {
