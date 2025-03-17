@@ -61,36 +61,44 @@ module.exports = (wss) => {
 
   router.put("/:tvId", authenticateToken, async (req, res) => {
     try {
+      console.log("Requisição recebida para atualizar TV com ID:", req.params.tvId);
+      console.log("Body da requisição:", req.body);
+  
       const { youtubeLink, vimeoLink, address, status } = req.body;
       const { tvId } = req.params;
   
-      // Verifica se pelo menos um link foi fornecido
       if (!youtubeLink && !vimeoLink) {
+        console.log("Nenhum link fornecido");
         return res.status(400).json({ message: "Forneça pelo menos um link (YouTube ou Vimeo)." });
       }
   
-      // Atualiza todas as informações da TV
+      console.log("Buscando TV no banco de dados...");
       const updatedTv = await Tv.findByIdAndUpdate(
         tvId,
         { youtubeLink, vimeoLink, address, status },
         { new: true, runValidators: true }
-      );
+      ).catch(err => {
+        console.error("Erro ao atualizar TV no banco de dados:", err);
+        throw err;
+      });
   
-      // Verifica se a TV foi encontrada e atualizada
       if (!updatedTv) {
+        console.log("TV não encontrada com ID:", tvId);
         return res.status(404).json({ message: "TV não encontrada" });
       }
   
+      console.log("TV atualizada com sucesso:", updatedTv);
+  
       // Envia evento WebSocket apenas para a TV específica
-      const ws = tvClients.get(tvId); // tvClients é um Map que armazena as conexões WebSocket das TVs
-      if (ws && ws.readyState === 1) { // Verifica se a conexão WebSocket está aberta
+      const ws = tvClients.get(tvId);
+      if (ws && ws.readyState === 1) {
+        console.log("Enviando atualização via WebSocket para a TV:", tvId);
         ws.send(JSON.stringify({ type: "tvUpdate", tv: updatedTv }));
       }
   
-      // Retorna a TV atualizada
       res.status(200).json(updatedTv);
     } catch (error) {
-      // Trata erros inesperados
+      console.error("Erro ao atualizar TV:", error);
       res.status(500).json({ message: "Erro ao atualizar TV", error: error.message });
     }
   });
