@@ -137,14 +137,16 @@ router.post("/status-tv", async (req, res) => {
 
       // Enviar evento WebSocket apenas para a TV específica
       wss.clients.forEach((client) => {
-          if (client.readyState === 1) {
-              client.send(JSON.stringify({
-                  type: "tvStatusUpdate",
-                  tvId: updatedTv._id, // Garantir que o ID correto está sendo enviado
-                  status: updatedTv.status
-              }));
-          }
+        if (client.readyState === 1 && client.tvId === updatedTv._id.toString()) {
+          client.send(JSON.stringify({
+            type: "tvUpdate",
+            tvId: updatedTv._id,
+            tv: updatedTv
+          }));
+        }
       });
+      
+    
 
       res.status(200).json({ message: "Status atualizado com sucesso", tv: updatedTv });
   } catch (err) {
