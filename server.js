@@ -3,45 +3,105 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const bodyParser = require('body-parser');
+const WebSocket = require("ws");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const jwt = require("jsonwebtoken");
 
 dotenv.config();
 
 const app = express();
 
-// Configure o CORS para permitir múltiplas origens
+// Middlewares de segurança e logs
+app.use(helmet());
+app.use(morgan('combined'));
+
+// Configuração do CORS
 const corsOptions = {
-  origin: ["http://localhost:4200", "https://all-door-frontend.vercel.app", "https://alldoor-frontend.vercel.app",  ],
-  methods: "GET,POST,DELETE, PUT",
+  origin: ["http://localhost:4200", "https://alldoor-frontend.vercel.app"],
+  methods: "GET,POST,DELETE,PUT",
   allowedHeaders: "Content-Type,Authorization",
   credentials: true
 };
-
-app.use(cors(corsOptions)); // Use o CORS com as opções configuradas
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(bodyParser.json()); 
+app.use(bodyParser.json());
 
-// Certifique-se de usar o middleware body-parser corretamente// Importação das rotas
+// Servidor HTTP
+const server = require("http").createServer(app);
+
+// Configuração do WebSocket
+const wss = new WebSocket.Server({ server });
+const clients = new Map();
+
+wss.on("connection", (ws, req) => {
+  const token = req.headers['sec-websocket-protocol'];
+  if (!token) {
+    ws.close(4001, 'Token de autenticação ausente');
+    return;
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      ws.close(4001, 'Token inválido');
+      return;
+    }
+
+    console.log(`Cliente autenticado: ${user.id}`);
+    clients.set(user.id, ws);
+
+    // Configura um ping/pong para manter a conexão ativa
+    ws.isAlive = true;
+    ws.on('pong', () => {
+      ws.isAlive = true;
+    });
+
+    ws.on('close', () => {
+      clients.delete(user.id);
+      console.log(`Cliente ${user.id} desconectado.`);
+    });
+  });
+});
+
+// Verifica conexões ativas a cada 30 segundos
+setInterval(() => {
+  wss.clients.forEach((ws) => {
+    if (!ws.isAlive) {
+      return ws.terminate();
+    }
+
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);
+
+// Importação das rotas
 const authRoutes = require("./routes/auth");
 const totemRoutes = require("./routes/totem");
-const userRoutes = require('./routes/users');
-const tvRoutes = require('./routes/tvRoutes');
+const userRoutes = require("./routes/users");
+const tvRoutes = require("./routes/tvRoutes")(wss); // Passamos o WebSocket para tvRoutes
 
 // Uso das rotas
-
 app.use("/auth", authRoutes);
 app.use("/totem", totemRoutes);
 app.use("/users", userRoutes);
 app.use("/tv", tvRoutes);
 
-const MONGO_URI = process.env.MONGO_URI;
+// Middleware de tratamento de erros global
+app.use((err, req, res, next) => {
+  console.error('Erro não tratado:', err);
+  res.status(500).json({ message: 'Erro interno do servidor' });
+});
 
-// Conexão ao banco
+// Conexão ao MongoDB
+const MONGO_URI = process.env.MONGO_URI;
 mongoose
   .connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Conectado ao MongoDB"))
   .catch((error) => console.error("Erro ao conectar ao MongoDB:", error));
 
+// Inicialização do servidor
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
 });
