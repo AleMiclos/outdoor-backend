@@ -192,12 +192,42 @@ router.post("/status-tv", async (req, res) => {
       }
 
       console.log('Status da TV encontrado:', tv);
-      res.status(200).json({ status: tv.status });
     } catch (err) {
       console.error('Erro ao buscar status da TV:', err);
       res.status(500).json({ error: 'Erro ao buscar status da TV' });
     }
   });
+
+  router.get('/status-vimeo/:tvId', async (req, res) => {
+    try {
+      const { tvId } = req.params;
+      const tv = await Tv.findById(tvId).select('vimeoStatus');
+      
+      if (!tv) {
+        return res.status(404).json({ error: 'TV não encontrada' });
+      }
+  
+      res.json({ status: tv.vimeoStatus || 'unknown' });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao buscar status do Vimeo' });
+    }
+  });
+  
+  router.get('/status-youtube/:tvId', async (req, res) => {
+    try {
+      const { tvId } = req.params;
+      const tv = await Tv.findById(tvId).select('youtubeStatus');
+  
+      if (!tv) {
+        return res.status(404).json({ error: 'TV não encontrada' });
+      }
+  
+      res.json({ status: tv.youtubeStatus || 'unknown' });
+    } catch (error) {
+      res.status(500).json({ error: 'Erro ao buscar status do YouTube' });
+    }
+  });
+  
 
   return router;
 };
