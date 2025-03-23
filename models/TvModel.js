@@ -23,6 +23,8 @@ const TvSchema = new mongoose.Schema(
     address: { type: String, required: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     status: { type: String, default: "ativo" },
+    youtubeStatus: { type: String, default: "rodando" },
+    vimeoStatus: { type: String, default: "rodando" },
     lastUpdate: { type: Date, default: Date.now },
     adType: { type: String, enum: ["full", "withTv"], default: "full" }, // Adicionado o campo adType
   },
