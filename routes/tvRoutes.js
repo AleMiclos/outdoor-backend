@@ -137,16 +137,14 @@ router.post("/status-tv", async (req, res) => {
 
       // Enviar evento WebSocket apenas para a TV específica
       wss.clients.forEach((client) => {
-        if (client.readyState === 1 && client.tvId === updatedTv._id.toString()) {
-          client.send(JSON.stringify({
-            type: "tvUpdate",
-            tvId: updatedTv._id,
-            tv: updatedTv
-          }));
-        }
+          if (client.readyState === 1) {
+              client.send(JSON.stringify({
+                  type: "tvStatusUpdate",
+                  tvId: updatedTv._id, // Garantir que o ID correto está sendo enviado
+                  status: updatedTv.status
+              }));
+          }
       });
-      
-    
 
       res.status(200).json({ message: "Status atualizado com sucesso", tv: updatedTv });
   } catch (err) {
@@ -172,32 +170,185 @@ router.post("/status-tv", async (req, res) => {
     }
   });
 
-  // Obtém o status da TV pelo ID
-  router.get('/status-tv/:tvId', async (req, res) => {
-    const { tvId } = req.params;
+  // Função para enviar o evento WebSocket de atualização de status
+function broadcastTvStatus(updatedTv) {
+  if (!updatedTv) return;
 
-    // Validação do tvId
-    if (!tvId) {
-      console.error('Erro de validação: tvId é obrigatório');
-      return res.status(400).json({ error: 'tvId é obrigatório' });
-    }
+  const payload = {
+    type: "statusUpdate",
+    tvId: updatedTv._id,
+    status: updatedTv.status,
+    vimeoStatus: updatedTv.vimeoStatus,
+    youtubeStatus: updatedTv.youtubeStatus,
+    lastUpdate: updatedTv.lastUpdate,
+  };
 
-    try {
-      // Busca o status da TV no banco de dados
-      const tv = await Tv.findById(tvId).select('status');
-
-      if (!tv) {
-        console.error('TV não encontrada:', tvId);
-        return res.status(404).json({ error: 'TV não encontrada' });
-      }
-
-      console.log('Status da TV encontrado:', tv);
-      res.status(200).json({ status: tv.status });
-    } catch (err) {
-      console.error('Erro ao buscar status da TV:', err);
-      res.status(500).json({ error: 'Erro ao buscar status da TV' });
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1) {
+      client.send(JSON.stringify(payload));
     }
   });
+
+  console.log("🔄 Status atualizado enviado via WebSocket:", payload);
+}
+
+// 🔹 Atualiza o status da TV
+router.post("/status-tv", async (req, res) => {
+  const { tvId, status } = req.body;
+
+  if (!tvId || status === undefined) {
+    return res.status(400).json({ error: "tvId e status são obrigatórios" });
+  }
+
+  try {
+    const updatedTv = await Tv.findByIdAndUpdate(
+      tvId,
+      { status, lastUpdate: Date.now() },
+      { new: true }
+    );
+
+    if (!updatedTv) {
+      return res.status(404).json({ error: "TV não encontrada" });
+    }
+
+    broadcastTvStatus(updatedTv); // 🔹 Chama a função otimizada para WebSocket
+
+    res.status(200).json({ message: "Status da TV atualizado", tv: updatedTv });
+  } catch (err) {
+    console.error("Erro ao atualizar status da TV:", err);
+    res.status(500).json({ error: "Erro ao atualizar status da TV" });
+  }
+});
+
+// 🔹 Atualiza o status do Vimeo
+router.post("/status-vimeo", async (req, res) => {
+  const { tvId, status } = req.body;
+
+  if (!tvId || status === undefined) {
+    return res.status(400).json({ error: "tvId e status são obrigatórios" });
+  }
+
+  try {
+    const updatedTv = await Tv.findByIdAndUpdate(
+      tvId,
+      { vimeoStatus: status, lastUpdate: Date.now() },
+      { new: true }
+    );
+
+    if (!updatedTv) {
+      return res.status(404).json({ error: "TV não encontrada" });
+    }
+
+    broadcastTvStatus(updatedTv); // 🔹 Envia o evento WebSocket
+
+    res.status(200).json({ message: "Status do Vimeo atualizado", tv: updatedTv });
+  } catch (err) {
+    console.error("Erro ao atualizar status do Vimeo:", err);
+    res.status(500).json({ error: "Erro ao atualizar status do Vimeo" });
+  }
+});
+
+// 🔹 Atualiza o status do YouTube
+router.post("/status-youtube", async (req, res) => {
+  const { tvId, status } = req.body;
+
+  if (!tvId || status === undefined) {
+    return res.status(400).json({ error: "tvId e status são obrigatórios" });
+  }
+
+  try {
+    const updatedTv = await Tv.findByIdAndUpdate(
+      tvId,
+      { youtubeStatus: status, lastUpdate: Date.now() },
+      { new: true }
+    );
+
+    if (!updatedTv) {
+      return res.status(404).json({ error: "TV não encontrada" });
+    }
+
+    broadcastTvStatus(updatedTv); // 🔹 Envia o evento WebSocket
+
+    res.status(200).json({ message: "Status do YouTube atualizado", tv: updatedTv });
+  } catch (err) {
+    console.error("Erro ao atualizar status do YouTube:", err);
+    res.status(500).json({ error: "Erro ao atualizar status do YouTube" });
+  }
+});
+
+// 🔹 Obtém o status da TV pelo ID
+router.get("/status-tv/:tvId", async (req, res) => {
+  const { tvId } = req.params;
+
+  if (!tvId) {
+    return res.status(400).json({ error: "tvId é obrigatório" });
+  }
+
+  try {
+    const tv = await Tv.findById(tvId).select("status vimeoStatus youtubeStatus");
+
+    if (!tv) {
+      return res.status(404).json({ error: "TV não encontrada" });
+    }
+
+    console.log("Status da TV encontrado:", tv);
+    res.status(200).json({
+      status: tv.status,
+      vimeoStatus: tv.vimeoStatus,
+      youtubeStatus: tv.youtubeStatus,
+    });
+  } catch (err) {
+    console.error("Erro ao buscar status da TV:", err);
+    res.status(500).json({ error: "Erro ao buscar status da TV" });
+  }
+});
+
+// 🔹 Obtém o status do Vimeo pelo ID da TV
+router.get("/status-vimeo/:tvId", async (req, res) => {
+  const { tvId } = req.params;
+
+  if (!tvId) {
+    return res.status(400).json({ error: "tvId é obrigatório" });
+  }
+
+  try {
+    const tv = await Tv.findById(tvId).select("vimeoStatus");
+
+    if (!tv) {
+      return res.status(404).json({ error: "TV não encontrada" });
+    }
+
+    console.log("Status do Vimeo encontrado:", tv);
+    res.status(200).json({ status: tv.vimeoStatus });
+  } catch (err) {
+    console.error("Erro ao buscar status do Vimeo:", err);
+    res.status(500).json({ error: "Erro ao buscar status do Vimeo" });
+  }
+});
+
+// 🔹 Obtém o status do YouTube pelo ID da TV
+router.get("/status-youtube/:tvId", async (req, res) => {
+  const { tvId } = req.params;
+
+  if (!tvId) {
+    return res.status(400).json({ error: "tvId é obrigatório" });
+  }
+
+  try {
+    const tv = await Tv.findById(tvId).select("youtubeStatus");
+
+    if (!tv) {
+      return res.status(404).json({ error: "TV não encontrada" });
+    }
+
+    console.log("Status do YouTube encontrado:", tv);
+    res.status(200).json({ status: tv.youtubeStatus });
+  } catch (err) {
+    console.error("Erro ao buscar status do YouTube:", err);
+    res.status(500).json({ error: "Erro ao buscar status do YouTube" });
+  }
+});
+
 
   return router;
 };
