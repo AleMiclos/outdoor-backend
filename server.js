@@ -18,7 +18,7 @@ app.use(morgan('combined'));
 
 // Configuração do CORS
 const corsOptions = {
-  origin: ["http://localhost:4200", "https://alldoor.vercel.app", "https://alldoorteste.vercel.app"],
+  origin: ["http://localhost:4200", "https://alldoor.vercel.app", "https://alldoorteste.vercel.app", "https://alldoortestes.vercel.app"],
   methods: "GET,POST,DELETE,PUT",
   allowedHeaders: "Content-Type,Authorization",
   credentials: true
