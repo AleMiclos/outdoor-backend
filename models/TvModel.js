@@ -2,15 +2,6 @@ const mongoose = require("mongoose");
 
 const TvSchema = new mongoose.Schema(
   {
-    youtubeLink: {
-      type: String,
-      validate: {
-        validator: function (v) {
-          return !v || /^https?:\/\/(www\.)?youtube\.com\/watch\?v=/.test(v);
-        },
-        message: "YouTube link inválido",
-      },
-    },
     vimeoLink: {
       type: String,
       validate: {
@@ -20,22 +11,35 @@ const TvSchema = new mongoose.Schema(
         message: "Vimeo link inválido",
       },
     },
+    plutoLink: {
+      type: String,
+      validate: {
+        validator: function (v) {
+          return (
+            !v ||
+            /^https?:\/\/pluto\.tv\/(br\/)?live-tv\/[a-zA-Z0-9]+(\?.*)?$/.test(v)
+          );
+        },
+        message: "PlutoTV link inválido",
+      },
+    },
+    
     address: { type: String, required: true },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     status: { type: String, default: "ativo" },
-    youtubeStatus: { type: String, default: "rodando" },
     vimeoStatus: { type: String, default: "rodando" },
+    plutoStatus: { type: String, default: "rodando" },
     lastUpdate: { type: Date, default: Date.now },
-    adType: { type: String, enum: ["full", "withTv"], default: "full" }, // Adicionado o campo adType
+    adType: { type: String, enum: ["full", "withTv"], default: "full" },
   },
   { timestamps: true }
 );
 
-// Garantir que pelo menos um dos links seja informado
+// Garantir que pelo menos um dos links seja informado (Vimeo ou PlutoTV)
 TvSchema.pre("save", function (next) {
-  if (!this.youtubeLink && !this.vimeoLink) {
+  if (!this.vimeoLink && !this.plutoLink) {
     return next(
-      new Error("É necessário fornecer pelo menos um link (YouTube ou Vimeo).")
+      new Error("É necessário fornecer pelo menos um link (Vimeo ou PlutoTV).")
     );
   }
   next();
