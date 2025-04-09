@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     totens: { type: Boolean, default: false }, // Permissão para Totens
     tvs: { type: Boolean, default: false } // Permissão para TVs
   },
-  assignedTvs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tv' }] // TVs atribuídas ao usuário
+  assignedTvs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Tv' }] 
 });
 
 module.exports = mongoose.model("User", userSchema);
